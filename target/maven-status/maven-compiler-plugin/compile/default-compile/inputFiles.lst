@@ -1,0 +1,16 @@
+C:\Users\kriss\OneDrive\Рабочий стол\Task_4\src\main\java\com\fulfillment\exception\FulfillmentException.java
+C:\Users\kriss\OneDrive\Рабочий стол\Task_4\src\main\java\com\fulfillment\facade\FulfillmentAdminFacade.java
+C:\Users\kriss\OneDrive\Рабочий стол\Task_4\src\main\java\com\fulfillment\facade\FulfillmentFacade.java
+C:\Users\kriss\OneDrive\Рабочий стол\Task_4\src\main\java\com\fulfillment\main\Main.java
+C:\Users\kriss\OneDrive\Рабочий стол\Task_4\src\main\java\com\fulfillment\subsystemA\InventoryEntity.java
+C:\Users\kriss\OneDrive\Рабочий стол\Task_4\src\main\java\com\fulfillment\subsystemA\InventoryManager.java
+C:\Users\kriss\OneDrive\Рабочий стол\Task_4\src\main\java\com\fulfillment\subsystemA\InventoryRepository.java
+C:\Users\kriss\OneDrive\Рабочий стол\Task_4\src\main\java\com\fulfillment\subsystemA\OrderValidator.java
+C:\Users\kriss\OneDrive\Рабочий стол\Task_4\src\main\java\com\fulfillment\subsystemB\PackingStation.java
+C:\Users\kriss\OneDrive\Рабочий стол\Task_4\src\main\java\com\fulfillment\subsystemB\WarehouseEntity.java
+C:\Users\kriss\OneDrive\Рабочий стол\Task_4\src\main\java\com\fulfillment\subsystemB\WarehousePicker.java
+C:\Users\kriss\OneDrive\Рабочий стол\Task_4\src\main\java\com\fulfillment\subsystemB\WarehouseRepository.java
+C:\Users\kriss\OneDrive\Рабочий стол\Task_4\src\main\java\com\fulfillment\subsystemC\PaymentGateway.java
+C:\Users\kriss\OneDrive\Рабочий стол\Task_4\src\main\java\com\fulfillment\subsystemC\ShippingCarrier.java
+C:\Users\kriss\OneDrive\Рабочий стол\Task_4\src\main\java\com\fulfillment\subsystemC\ShippingEntity.java
+C:\Users\kriss\OneDrive\Рабочий стол\Task_4\src\main\java\com\fulfillment\subsystemC\ShippingRepository.java
