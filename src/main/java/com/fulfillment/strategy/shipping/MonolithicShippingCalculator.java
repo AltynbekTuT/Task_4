@@ -12,7 +12,7 @@ public class MonolithicShippingCalculator {
             case "COLD":
                 return 40.0 + (order.getWeightKg() * 3.0) + (order.getDeclaredValue() * 0.02) + (order.isRequiresTemperatureControl() ? 30.0 : 0.0);
             default:
-                throw new IllegalArgumentException("Unknown type");
+            
         }
     }
 }
