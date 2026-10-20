@@ -1,5 +1,6 @@
 package com.fulfillment.strategy.external;
 
-public class ExternalRateProvider {
-    
+public interface ExternalRateProvider {
+    double getFuelSurchargeMultiplier();
+    double getInsuranceRatePercentage();
 }
