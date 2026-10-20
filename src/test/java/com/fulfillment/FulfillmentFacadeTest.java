@@ -8,6 +8,8 @@ import com.fulfillment.subsystemB.WarehouseEntity;
 import com.fulfillment.subsystemB.WarehouseRepository;
 import com.fulfillment.subsystemC.ShippingEntity;
 import com.fulfillment.subsystemC.ShippingRepository;
+
+import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
@@ -77,6 +79,8 @@ public class FulfillmentFacadeTest {
                                         WarehouseEntity.Status.ROLLED_BACK, null);
     }
 
+    
+
     @Test
     @DisplayName("Test state reload from disk after application restart")
     void testPersistenceReloadAfterRestart() {
@@ -86,4 +90,52 @@ public class FulfillmentFacadeTest {
         assertNotNull(newRepoA.findByOrderId("ORD-4"));
         assertEquals(InventoryEntity.Status.RESERVED, newRepoA.findByOrderId("ORD-4").getStatus());
     }
+
+    @Test 
+    @DisplayName("Should fail in step A when quantity is negative")
+    void testInvalidQuantityInStepA() {
+        Assertions.assertThrows(FulfillmentException.class, () -> {
+            facade.executeFulfillment("ORD-ERR", "PHONE", -5, 500.0, false, false);
+        });
+
+        assertOrderStatusOnDisk("ORD-ERR",null,null,null);
+    }
+
+    //unit tests for 2 step chain
+
+    @Test
+    @DisplayName("Should execute short A-B chain successfully without calling Subsystem C")
+    void testShortChainABSuccess() {
+        String orderId = "ORD-PICKUP-1";
+
+        boolean success = facade.executePickupFulfillment(orderId, "PHONE", 1, false);
+
+        Assertions.assertTrue(success);
+        // Проверяем, что A и B записаны, а C (Shipping) равен null
+        assertOrderStatusOnDisk(
+            orderId, 
+            InventoryEntity.Status.RESERVED, 
+            WarehouseEntity.Status.PICKED_PACKED, 
+            null
+        );
+    }
+
+    @Test
+    @DisplayName("Should rollback Step A when Step B fails in short A-B chain")
+    void testShortChainABFailureAtB() {
+        String orderId = "ORD-PICKUP-2";
+
+        Assertions.assertThrows(FulfillmentException.class, () -> {
+            facade.executePickupFulfillment(orderId, "PHONE", 1, true);
+        });
+
+        // Проверяем, что подсистема A отменена (CANCELLED), а B и C равны null
+        assertOrderStatusOnDisk(
+            orderId, 
+            InventoryEntity.Status.CANCELLED, 
+            null, 
+            null
+        );
+    }
+    
 }

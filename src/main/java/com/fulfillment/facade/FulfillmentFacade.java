@@ -22,54 +22,82 @@ public class FulfillmentFacade {
         }
     }
 
+    // Chain A-B-C
     public boolean executeFulfillment(String orderId, String itemId, int quantity, double amount, 
                                       boolean forceFailB, boolean forceFailC) {
-        
-        System.out.println("\n=== EXECUTING CHAIN FOR ORDER: " + orderId + " ===");
+        System.out.println("\n=== EXECUTING FULL CHAIN (A -> B -> C) FOR ORDER: " + orderId + " ===");
 
-        // Step 1: Subsystem A (Inventory Reservation)
         try {
             inventoryManager.reserveStock(orderId, itemId, quantity);
             saveChainStatus(orderId, "STEP_A_COMMITTED");
             System.out.println("-> Step A Passed: Inventory reserved.");
         } catch (Exception e) {
             saveChainStatus(orderId, "FAILED_AT_A");
-            System.out.println("❌ Step A Failure: " + e.getMessage());
+            System.out.println("Step A Failure: " + e.getMessage());
             throw e;
         }
 
-        // Step 2: Subsystem B (Warehouse Packing)
         try {
             packingStation.packOrder(orderId, forceFailB);
             saveChainStatus(orderId, "STEP_B_COMMITTED");
             System.out.println("-> Step B Passed: Order packed.");
         } catch (Exception e) {
-            System.out.println("❌ Step B Failure: " + e.getMessage());
-            System.out.println("⚠️  COMPENSATION: Rolling back Subsystem A...");
+            System.out.println("Step B Failure: " + e.getMessage());
+            System.out.println("COMPENSATION: Rolling back Subsystem A...");
             
-            // 1-Step Rollback: Cancel A
             inventoryManager.cancelReservation(orderId);
             saveChainStatus(orderId, "COMPENSATED_A_ONLY");
             throw new FulfillmentException("Rollback executed (Inventory reservation in A cancelled). Cause: " + e.getMessage());
         }
 
-        // Step 3: Subsystem C (Payment & Shipping)
         try {
             paymentGateway.processPaymentAndShip(orderId, amount, forceFailC);
             saveChainStatus(orderId, "COMPLETED_SUCCESSFULLY");
             System.out.println("-> Step C Passed: Payment and shipping confirmed.");
-            System.out.println("✅ CHAIN COMPLETED SUCCESSFULLY!");
+            System.out.println("FULL CHAIN COMPLETED SUCCESSFULLY!");
             return true;
         } catch (Exception e) {
-            System.out.println("❌ Step C Failure: " + e.getMessage());
-            System.out.println("⚠️  TWO-STEP COMPENSATION: Rolling back B, then A...");
+            System.out.println("Step C Failure: " + e.getMessage());
+            System.out.println("TWO-STEP COMPENSATION: Rolling back B, then A...");
 
-            // 2-Step Rollback: Cancel B, then Cancel A
             packingStation.rollbackPacking(orderId);
             inventoryManager.cancelReservation(orderId);
             
             saveChainStatus(orderId, "COMPENSATED_B_THEN_A");
             throw new FulfillmentException("Two-step rollback executed (B and A compensated). Cause: " + e.getMessage());
+        }
+    }
+
+    // Chain Two step for example pickup by 
+    public boolean executePickupFulfillment(String orderId, String itemId, int quantity, boolean forceFailB) {
+        System.out.println("\n=== EXECUTING SHORT CHAIN (A -> B ONLY) FOR ORDER: " + orderId + " ===");
+
+        // Reserving A
+        try {
+            inventoryManager.reserveStock(orderId, itemId, quantity);
+            saveChainStatus(orderId, "PICKUP_STEP_A_COMMITTED");
+            System.out.println("-> Step A Passed: Inventory reserved for pickup.");
+        } catch (Exception e) {
+            saveChainStatus(orderId, "PICKUP_FAILED_AT_A");
+            System.out.println("Step A Failure: " + e.getMessage());
+            throw e;
+        }
+
+        // B Packaging
+        try {
+            packingStation.packOrder(orderId, forceFailB);
+            saveChainStatus(orderId, "PICKUP_COMPLETED_SUCCESSFULLY");
+            System.out.println("-> Step B Passed: Order packed at pickup station.");
+            System.out.println("SHORT CHAIN (A -> B) COMPLETED SUCCESSFULLY!");
+            return true;
+        } catch (Exception e) {
+            System.out.println("Step B Failure: " + e.getMessage());
+            System.out.println("COMPENSATION: Rolling back Subsystem A...");
+
+            // No C so only B
+            inventoryManager.cancelReservation(orderId);
+            saveChainStatus(orderId, "PICKUP_COMPENSATED_A_ONLY");
+            throw new FulfillmentException("Short chain rollback executed (Subsystem A cancelled). Cause: " + e.getMessage());
         }
     }
 
