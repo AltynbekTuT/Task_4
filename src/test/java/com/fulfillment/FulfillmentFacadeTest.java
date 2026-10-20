@@ -44,9 +44,26 @@ public class FulfillmentFacadeTest {
         WarehouseEntity b = repoB.findByOrderId(orderId);
         ShippingEntity c = repoC.findByOrderId(orderId);
 
-        if (expectedA != null) assertEquals(expectedA, a.getStatus());
-        if (expectedB != null) assertEquals(expectedB, b.getStatus());
-        if (expectedC != null) assertEquals(expectedC, c.getStatus());
+        if (expectedA == null) {
+            assertNull(a, "Expected Inventory record to be null for " + orderId);
+        } else {
+            assertNotNull(a, "Expected Inventory record to exist for " + orderId);
+            assertEquals(expectedA, a.getStatus());
+        }
+
+        if (expectedB == null) {
+            assertNull(b, "Expected Warehouse record to be null for " + orderId);
+        } else {
+            assertNotNull(b, "Expected Warehouse record to exist for " + orderId);
+            assertEquals(expectedB, b.getStatus());
+        }
+
+        if (expectedC == null) {
+            assertNull(c, "Expected Shipping record to be null for " + orderId);
+        } else {
+            assertNotNull(c, "Expected Shipping record to exist for " + orderId);
+            assertEquals(expectedC, c.getStatus());
+        }
     }
 
     @Test
@@ -79,8 +96,6 @@ public class FulfillmentFacadeTest {
                                         WarehouseEntity.Status.ROLLED_BACK, null);
     }
 
-    
-
     @Test
     @DisplayName("Test state reload from disk after application restart")
     void testPersistenceReloadAfterRestart() {
@@ -98,10 +113,10 @@ public class FulfillmentFacadeTest {
             facade.executeFulfillment("ORD-ERR", "PHONE", -5, 500.0, false, false);
         });
 
-        assertOrderStatusOnDisk("ORD-ERR",null,null,null);
+        assertOrderStatusOnDisk("ORD-ERR", null, null, null);
     }
 
-    //unit tests for 2 step chain
+    // --- Unit tests for 2-step chain (Pickup) ---
 
     @Test
     @DisplayName("Should execute short A-B chain successfully without calling Subsystem C")
@@ -111,7 +126,6 @@ public class FulfillmentFacadeTest {
         boolean success = facade.executePickupFulfillment(orderId, "PHONE", 1, false);
 
         Assertions.assertTrue(success);
-        // Проверяем, что A и B записаны, а C (Shipping) равен null
         assertOrderStatusOnDisk(
             orderId, 
             InventoryEntity.Status.RESERVED, 
@@ -129,7 +143,6 @@ public class FulfillmentFacadeTest {
             facade.executePickupFulfillment(orderId, "PHONE", 1, true);
         });
 
-        // Проверяем, что подсистема A отменена (CANCELLED), а B и C равны null
         assertOrderStatusOnDisk(
             orderId, 
             InventoryEntity.Status.CANCELLED, 
@@ -137,5 +150,4 @@ public class FulfillmentFacadeTest {
             null
         );
     }
-    
 }
