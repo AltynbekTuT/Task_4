@@ -1,5 +1,8 @@
 package com.fulfillment.strategy.packing;
 
-public class PackingStrategy {
-    
+import com.fulfillment.strategy.model.OrderContext;
+
+public interface PackingStrategy {
+    String pack(OrderContext order);
+    String getStrategyName();
 }
